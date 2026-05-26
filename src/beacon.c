@@ -8,13 +8,14 @@
 #include "config.h"
 
 static char selected_ssids[MAX_SSID][33];
+static bool locked_ssids[MAX_SSID];
 static int selected_count = 0;
 static bool spoof_active = false;
 static int spoof_channel = AP_CHANNEL;
 static SemaphoreHandle_t mutex = NULL;
 static TaskHandle_t spoof_task_handle = NULL;
 
-static int build_beacon_frame(uint8_t *frame, const char *ssid, uint8_t idx, uint8_t channel)
+static int build_beacon_frame(uint8_t *frame, const char *ssid, uint8_t idx, uint8_t channel, bool locked)
 {
     int pos = 0;
     int ssid_len = strlen(ssid);
@@ -68,6 +69,16 @@ static int build_beacon_frame(uint8_t *frame, const char *ssid, uint8_t idx, uin
     memcpy(&frame[pos], erates, sizeof(erates));
     pos += sizeof(erates);
 
+    if (locked) {
+        static const uint8_t rsn_ie[] = {
+            0x30, 0x14, 0x01, 0x00, 0x00, 0x0F, 0xAC, 0x04,
+            0x01, 0x00, 0x00, 0x0F, 0xAC, 0x04, 0x01, 0x00,
+            0x00, 0x0F, 0xAC, 0x02, 0x00, 0x00
+        };
+        memcpy(&frame[pos], rsn_ie, sizeof(rsn_ie));
+        pos += sizeof(rsn_ie);
+    }
+
     return pos;
 }
 
@@ -84,9 +95,11 @@ static void spoof_task(void *arg)
         bool active = spoof_active;
         int ch = spoof_channel;
         char ssids[MAX_SSID][33];
+        bool locked[MAX_SSID];
         int count = selected_count;
         for (int i = 0; i < count; i++) {
             strcpy(ssids[i], selected_ssids[i]);
+            locked[i] = locked_ssids[i];
         }
         xSemaphoreGive(mutex);
 
@@ -99,7 +112,7 @@ static void spoof_task(void *arg)
 
         for (int s = 0; s < count; s++) {
             for (int b = 0; b < BEACON_BURST; b++) {
-                int len = build_beacon_frame(frame, ssids[s], s, ch);
+                int len = build_beacon_frame(frame, ssids[s], s, ch, locked[s]);
                 esp_wifi_80211_tx(WIFI_IF_AP, frame, len, false);
             }
             vTaskDelay(pdMS_TO_TICKS(BEACON_INTERVAL_MS));
@@ -164,6 +177,7 @@ int beacon_add_ssid(const char *ssid, uint8_t channel)
     }
     strncpy(selected_ssids[selected_count], ssid, slen);
     selected_ssids[selected_count][slen] = 0;
+    locked_ssids[selected_count] = false;
     spoof_channel = channel;
     selected_count++;
     int idx = selected_count - 1;
@@ -181,7 +195,7 @@ int beacon_get_ssid_count(void)
     return count;
 }
 
-bool beacon_get_ssid_at(int index, char *out_ssid, uint8_t *out_channel)
+bool beacon_get_ssid_at(int index, char *out_ssid, uint8_t *out_channel, bool *out_locked)
 {
     xSemaphoreTake(mutex, portMAX_DELAY);
     if (index < 0 || index >= selected_count) {
@@ -190,6 +204,7 @@ bool beacon_get_ssid_at(int index, char *out_ssid, uint8_t *out_channel)
     }
     strcpy(out_ssid, selected_ssids[index]);
     *out_channel = spoof_channel;
+    *out_locked = locked_ssids[index];
     xSemaphoreGive(mutex);
     return true;
 }
@@ -203,8 +218,10 @@ bool beacon_remove_ssid(int index)
     }
     for (int j = index; j < selected_count - 1; j++) {
         strcpy(selected_ssids[j], selected_ssids[j+1]);
+        locked_ssids[j] = locked_ssids[j+1];
     }
     selected_ssids[selected_count-1][0] = 0;
+    locked_ssids[selected_count-1] = false;
     selected_count--;
     printf("Removed SSID at %d, now %d SSIDs\n", index, selected_count);
     xSemaphoreGive(mutex);
@@ -217,4 +234,18 @@ uint8_t beacon_get_channel(void)
     uint8_t ch = spoof_channel;
     xSemaphoreGive(mutex);
     return ch;
+}
+
+bool beacon_toggle_lock(int index)
+{
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    if (index < 0 || index >= selected_count) {
+        xSemaphoreGive(mutex);
+        return false;
+    }
+    locked_ssids[index] = !locked_ssids[index];
+    printf("Toggled lock SSID[%d] %s -> %s\n", index, selected_ssids[index],
+           locked_ssids[index] ? "LOCKED" : "OPEN");
+    xSemaphoreGive(mutex);
+    return true;
 }

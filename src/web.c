@@ -22,6 +22,7 @@ static const char INDEX_HTML[] =
     "<div id=s>Kapali</div><div class=s><button onclick=scan()>TARA</button></div>"
     "<div class=s><h3>Aglar</h3><div id=n>Tara butonuna bas</div></div>"
     "<div class=s><h3>Secili</h3><div id=l></div><input id=c placeholder=SSID><button onclick=ac()>EKLE</button></div>"
+    "<div class=s><h4>Sifre: 0174658631</h4></div>"
     "<div class=s><button onclick=sf()>BASLAT</button><button onclick=sp()>DURDUR</button></div>"
     "<script>"
     "async function scan(){document.getElementById('n').innerHTML='TARANIYOR...';"
@@ -32,9 +33,10 @@ static const char INDEX_HTML[] =
     "document.getElementById('n').innerHTML=h;}catch(e){document.getElementById('n').innerHTML='HATA:'+e;}}"
     "async function as(s,c){await fetch('/api/select',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ssid:s,channel:c})});ld();}"
     "async function ac(){let s=document.getElementById('c').value;if(s){await fetch('/api/select',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ssid:s,channel:6})});document.getElementById('c').value='';ld();}}"
+    "async function tl(i){await fetch('/api/toggle-lock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({i:i})});ld();}"
     "async function rm(i){await fetch('/api/select/delete?i='+i,{method:'DELETE'});ld();}"
     "async function ld(){try{let r=await fetch('/api/select');let d=await r.json();let h='';"
-    "d.ssids.forEach((s,i)=>{h+='<div class=i>'+s.ssid+' <button onclick=rm('+i+')>-</button></div>';});"
+    "d.ssids.forEach((s,i)=>{h+='<div class=i><button onclick=tl('+i+')>'+(s.locked?'\\uD83D\\uDD12':'\\uD83D\\uDD13')+'</button> '+s.ssid+' <button onclick=rm('+i+')>-</button></div>';});"
     "document.getElementById('l').innerHTML=h||'Yok';}catch(e){console.log(e);}}"
     "async function sf(){await fetch('/api/spoof/start',{method:'POST'});up();}"
     "async function sp(){await fetch('/api/spoof/stop',{method:'POST'});up();}"
@@ -109,9 +111,10 @@ static esp_err_t api_select_handler(httpd_req_t *req)
         for (int i = 0; i < beacon_get_ssid_count(); i++) {
             char ssid[33];
             uint8_t ch;
-            if (beacon_get_ssid_at(i, ssid, &ch)) {
+            bool locked;
+            if (beacon_get_ssid_at(i, ssid, &ch, &locked)) {
                 if (i > 0) pos += sprintf(resp + pos, ",");
-                pos += sprintf(resp + pos, "{\"ssid\":\"%s\",\"channel\":%d}", ssid, ch);
+                pos += sprintf(resp + pos, "{\"ssid\":\"%s\",\"channel\":%d,\"locked\":%s}", ssid, ch, locked ? "true" : "false");
             }
         }
         pos += sprintf(resp + pos, "]}");
@@ -155,6 +158,24 @@ static esp_err_t api_select_handler(httpd_req_t *req)
         httpd_resp_set_type(req, "application/json");
         httpd_resp_sendstr(req, "{\"ok\":true}");
     }
+    return ESP_OK;
+}
+
+static esp_err_t api_toggle_lock_handler(httpd_req_t *req)
+{
+    char buf[64];
+    int len = httpd_req_recv(req, buf, sizeof(buf) - 1);
+    if (len > 0) {
+        buf[len] = 0;
+        char *i_str = strstr(buf, "\"i\":");
+        if (i_str) {
+            int idx = atoi(i_str + 4);
+            printf("API: toggle lock %d\n", idx);
+            beacon_toggle_lock(idx);
+        }
+    }
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_sendstr(req, "{\"ok\":true}");
     return ESP_OK;
 }
 
@@ -207,6 +228,7 @@ void start_webserver(void)
         {"/api/select", HTTP_GET, api_select_handler, NULL},
         {"/api/select", HTTP_POST, api_select_handler, NULL},
         {"/api/select/delete", HTTP_DELETE, api_select_handler, NULL},
+        {"/api/toggle-lock", HTTP_POST, api_toggle_lock_handler, NULL},
         {"/api/spoof/start", HTTP_POST, api_spoof_start_handler, NULL},
         {"/api/spoof/stop", HTTP_POST, api_spoof_stop_handler, NULL},
         {"/api/status", HTTP_GET, api_status_handler, NULL},
