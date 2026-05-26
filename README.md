@@ -26,7 +26,7 @@ A web-controlled SSID beacon flooding tool for ESP32, built with ESP-IDF framewo
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/esp32-ssid-spoofer-pro.git
+git clone https://github.com/poqob/esp32-ssid-spoofer-pro.git
 cd esp32-ssid-spoofer-pro
 ```
 
