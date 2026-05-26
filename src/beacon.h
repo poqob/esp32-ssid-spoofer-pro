@@ -10,7 +10,10 @@ typedef struct {
     bool locked;
     int attempts;
     int unique_devices;
-    uint32_t uptime_sec; /* seconds since boot when last seen */
+    int8_t rssi;
+    char last_mac[18];
+    char vendor[16];
+    uint32_t uptime_sec;
 } log_entry_t;
 
 void beacon_init(void);
