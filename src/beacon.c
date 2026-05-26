@@ -10,32 +10,13 @@
 
 static char selected_ssids[MAX_SSID][33];
 static bool locked_ssids[MAX_SSID];
+static int attempts_ssids[MAX_SSID];
+static uint32_t last_seen_ssids[MAX_SSID];
 static int selected_count = 0;
 static bool spoof_active = false;
 static int spoof_channel = AP_CHANNEL;
 static SemaphoreHandle_t mutex = NULL;
 static TaskHandle_t spoof_task_handle = NULL;
-
-#define MAX_LOG 30
-static log_entry_t log_buffer[MAX_LOG];
-static int log_write_idx = 0;
-static int log_count = 0;
-static SemaphoreHandle_t log_mutex = NULL;
-
-static void add_log(const char *mac, const char *ssid, bool locked)
-{
-    xSemaphoreTake(log_mutex, portMAX_DELAY);
-    int idx = log_write_idx;
-    strncpy(log_buffer[idx].mac, mac, sizeof(log_buffer[idx].mac) - 1);
-    log_buffer[idx].mac[sizeof(log_buffer[idx].mac) - 1] = 0;
-    strncpy(log_buffer[idx].ssid, ssid, sizeof(log_buffer[idx].ssid) - 1);
-    log_buffer[idx].ssid[sizeof(log_buffer[idx].ssid) - 1] = 0;
-    log_buffer[idx].locked = locked;
-    log_write_idx = (log_write_idx + 1) % MAX_LOG;
-    if (log_count < MAX_LOG) log_count++;
-    xSemaphoreGive(log_mutex);
-    printf("LOG: %s -> %s (%s)\n", mac, ssid, locked ? "LOCKED" : "OPEN");
-}
 
 static void promiscuous_cb(void *buf, wifi_promiscuous_pkt_type_t type)
 {
@@ -50,10 +31,6 @@ static void promiscuous_cb(void *buf, wifi_promiscuous_pkt_type_t type)
     bool is_assoc = (subtype == 0x00);
     bool is_probe = (subtype == 0x04);
     if (!is_assoc && !is_probe) return;
-
-    char mac[18];
-    snprintf(mac, sizeof(mac), "%02x:%02x:%02x:%02x:%02x:%02x",
-             frame[10], frame[11], frame[12], frame[13], frame[14], frame[15]);
 
     int body = 24;
     if (is_assoc) body += 4;
@@ -70,20 +47,21 @@ static void promiscuous_cb(void *buf, wifi_promiscuous_pkt_type_t type)
         }
         i += 2 + tlen;
     }
-
     if (strlen(ssid) == 0) return;
 
-    bool locked = false;
-    if (xSemaphoreTake(mutex, 0) == pdTRUE) {
-        for (int j = 0; j < selected_count; j++) {
-            if (strcmp(selected_ssids[j], ssid) == 0) {
-                locked = locked_ssids[j];
-                break;
-            }
+    if (xSemaphoreTake(mutex, 0) != pdTRUE) return;
+
+    for (int j = 0; j < selected_count; j++) {
+        if (strcmp(selected_ssids[j], ssid) == 0) {
+            attempts_ssids[j]++;
+            last_seen_ssids[j] = xTaskGetTickCount() / 1000;
+            printf("DENEME: %s <- %s (%d)\n", ssid,
+                   locked_ssids[j] ? "0174658631" : "(sifresiz)",
+                   attempts_ssids[j]);
+            break;
         }
-        xSemaphoreGive(mutex);
     }
-    add_log(mac, ssid, locked);
+    xSemaphoreGive(mutex);
 }
 
 static int build_beacon_frame(uint8_t *frame, const char *ssid, uint8_t idx, uint8_t channel, bool locked)
@@ -195,7 +173,6 @@ static void spoof_task(void *arg)
 void beacon_init(void)
 {
     mutex = xSemaphoreCreateMutex();
-    log_mutex = xSemaphoreCreateMutex();
 
     esp_wifi_set_promiscuous_rx_cb(promiscuous_cb);
     esp_wifi_set_promiscuous(true);
@@ -254,6 +231,8 @@ int beacon_add_ssid(const char *ssid, uint8_t channel)
     strncpy(selected_ssids[selected_count], ssid, slen);
     selected_ssids[selected_count][slen] = 0;
     locked_ssids[selected_count] = false;
+    attempts_ssids[selected_count] = 0;
+    last_seen_ssids[selected_count] = 0;
     spoof_channel = channel;
     selected_count++;
     int idx = selected_count - 1;
@@ -295,9 +274,13 @@ bool beacon_remove_ssid(int index)
     for (int j = index; j < selected_count - 1; j++) {
         strcpy(selected_ssids[j], selected_ssids[j+1]);
         locked_ssids[j] = locked_ssids[j+1];
+        attempts_ssids[j] = attempts_ssids[j+1];
+        last_seen_ssids[j] = last_seen_ssids[j+1];
     }
     selected_ssids[selected_count-1][0] = 0;
     locked_ssids[selected_count-1] = false;
+    attempts_ssids[selected_count-1] = 0;
+    last_seen_ssids[selected_count-1] = 0;
     selected_count--;
     printf("Removed SSID at %d, now %d SSIDs\n", index, selected_count);
     xSemaphoreGive(mutex);
@@ -326,29 +309,44 @@ bool beacon_toggle_lock(int index)
     return true;
 }
 
+void beacon_reset_logs(void)
+{
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    for (int i = 0; i < selected_count; i++) {
+        attempts_ssids[i] = 0;
+        last_seen_ssids[i] = 0;
+    }
+    xSemaphoreGive(mutex);
+}
+
 int beacon_get_log_count(void)
 {
-    xSemaphoreTake(log_mutex, portMAX_DELAY);
-    int count = log_count;
-    xSemaphoreGive(log_mutex);
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    int count = 0;
+    for (int i = 0; i < selected_count; i++) {
+        if (attempts_ssids[i] > 0) count++;
+    }
+    xSemaphoreGive(mutex);
     return count;
 }
 
 bool beacon_get_log_at(int index, log_entry_t *out)
 {
-    xSemaphoreTake(log_mutex, portMAX_DELAY);
-    if (index < 0 || index >= log_count) {
-        xSemaphoreGive(log_mutex);
-        return false;
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    int nth = 0;
+    for (int i = 0; i < selected_count; i++) {
+        if (attempts_ssids[i] > 0) {
+            if (nth == index) {
+                strcpy(out->ssid, selected_ssids[i]);
+                out->locked = locked_ssids[i];
+                out->attempts = attempts_ssids[i];
+                out->uptime_sec = last_seen_ssids[i];
+                xSemaphoreGive(mutex);
+                return true;
+            }
+            nth++;
+        }
     }
-    int start;
-    if (log_count < MAX_LOG) {
-        start = 0;
-    } else {
-        start = log_write_idx;
-    }
-    int idx = (start + index) % MAX_LOG;
-    memcpy(out, &log_buffer[idx], sizeof(log_entry_t));
-    xSemaphoreGive(log_mutex);
-    return true;
+    xSemaphoreGive(mutex);
+    return false;
 }

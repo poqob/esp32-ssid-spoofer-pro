@@ -6,9 +6,10 @@
 #include <stddef.h>
 
 typedef struct {
-    char mac[18];
     char ssid[33];
     bool locked;
+    int attempts;
+    uint32_t uptime_sec; /* seconds since boot when last seen */
 } log_entry_t;
 
 void beacon_init(void);
@@ -25,5 +26,6 @@ uint8_t beacon_get_channel(void);
 bool beacon_toggle_lock(int index);
 int beacon_get_log_count(void);
 bool beacon_get_log_at(int index, log_entry_t *out);
+void beacon_reset_logs(void);
 
 #endif
