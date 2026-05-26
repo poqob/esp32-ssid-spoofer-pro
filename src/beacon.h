@@ -9,6 +9,7 @@ typedef struct {
     char ssid[33];
     bool locked;
     int attempts;
+    int unique_devices;
     uint32_t uptime_sec; /* seconds since boot when last seen */
 } log_entry_t;
 

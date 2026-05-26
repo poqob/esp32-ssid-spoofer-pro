@@ -11,6 +11,8 @@
 static char selected_ssids[MAX_SSID][33];
 static bool locked_ssids[MAX_SSID];
 static int attempts_ssids[MAX_SSID];
+static int unique_counts[MAX_SSID];
+static uint8_t mac_lists[MAX_SSID][16][6];
 static uint32_t last_seen_ssids[MAX_SSID];
 static int selected_count = 0;
 static bool spoof_active = false;
@@ -55,9 +57,23 @@ static void promiscuous_cb(void *buf, wifi_promiscuous_pkt_type_t type)
         if (strcmp(selected_ssids[j], ssid) == 0) {
             attempts_ssids[j]++;
             last_seen_ssids[j] = xTaskGetTickCount() / 1000;
-            printf("DENEME: %s <- %s (%d)\n", ssid,
+
+            uint8_t *mac = &frame[10];
+            int found = 0;
+            for (int m = 0; m < unique_counts[j]; m++) {
+                if (memcmp(mac_lists[j][m], mac, 6) == 0) {
+                    found = 1;
+                    break;
+                }
+            }
+            if (!found && unique_counts[j] < 16) {
+                memcpy(mac_lists[j][unique_counts[j]], mac, 6);
+                unique_counts[j]++;
+            }
+
+            printf("DENEME: %s <- %s (%d, %d cihaz)\n", ssid,
                    locked_ssids[j] ? "0174658631" : "(sifresiz)",
-                   attempts_ssids[j]);
+                   attempts_ssids[j], unique_counts[j]);
             break;
         }
     }
@@ -232,6 +248,7 @@ int beacon_add_ssid(const char *ssid, uint8_t channel)
     selected_ssids[selected_count][slen] = 0;
     locked_ssids[selected_count] = false;
     attempts_ssids[selected_count] = 0;
+    unique_counts[selected_count] = 0;
     last_seen_ssids[selected_count] = 0;
     spoof_channel = channel;
     selected_count++;
@@ -275,11 +292,14 @@ bool beacon_remove_ssid(int index)
         strcpy(selected_ssids[j], selected_ssids[j+1]);
         locked_ssids[j] = locked_ssids[j+1];
         attempts_ssids[j] = attempts_ssids[j+1];
+        unique_counts[j] = unique_counts[j+1];
+        memcpy(mac_lists[j], mac_lists[j+1], sizeof(mac_lists[j]));
         last_seen_ssids[j] = last_seen_ssids[j+1];
     }
     selected_ssids[selected_count-1][0] = 0;
     locked_ssids[selected_count-1] = false;
     attempts_ssids[selected_count-1] = 0;
+    unique_counts[selected_count-1] = 0;
     last_seen_ssids[selected_count-1] = 0;
     selected_count--;
     printf("Removed SSID at %d, now %d SSIDs\n", index, selected_count);
@@ -314,6 +334,7 @@ void beacon_reset_logs(void)
     xSemaphoreTake(mutex, portMAX_DELAY);
     for (int i = 0; i < selected_count; i++) {
         attempts_ssids[i] = 0;
+        unique_counts[i] = 0;
         last_seen_ssids[i] = 0;
     }
     xSemaphoreGive(mutex);
@@ -340,6 +361,7 @@ bool beacon_get_log_at(int index, log_entry_t *out)
                 strcpy(out->ssid, selected_ssids[i]);
                 out->locked = locked_ssids[i];
                 out->attempts = attempts_ssids[i];
+                out->unique_devices = unique_counts[i];
                 out->uptime_sec = last_seen_ssids[i];
                 xSemaphoreGive(mutex);
                 return true;

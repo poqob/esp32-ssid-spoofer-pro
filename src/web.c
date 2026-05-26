@@ -46,10 +46,10 @@ static const char INDEX_HTML[] =
     "async function up(){try{let r=await fetch('/api/status');let d=await r.json();"
     "document.getElementById('s').textContent=d.active?'AKTIF CH:'+d.channel:'KAPALI';}catch(e){}}"
     "async function lg(){try{let r=await fetch('/api/log');let d=await r.json();"
-    "let h='<div class=i style=color:#888>SSID | Sifre | Deneme | Son</div>';"
+    "let h='<div class=i style=color:#888>SSID | Sifre | Deneme | Cihaz | Son</div>';"
     "d.logs.forEach((x)=>{let p=x.locked?'0174658631':'-';"
     "let a=x.seconds_ago<60?x.seconds_ago+'sn':Math.floor(x.seconds_ago/60)+'dk';"
-    "h+='<div class=i>'+(x.locked?'\\uD83D\\uDD12':'\\uD83D\\uDD13')+' '+x.ssid+' '+p+' '+x.attempts+'x '+a+'</div>';});"
+    "h+='<div class=i>'+(x.locked?'\\uD83D\\uDD12':'\\uD83D\\uDD13')+' '+x.ssid+' '+p+' '+x.attempts+'x '+x.unique_devices+'c '+a+'</div>';});"
     "document.getElementById('lg').innerHTML=h||'<div class=i>Henuz deneme yok</div>';}catch(e){}}"
     "async function rl(){await fetch('/api/log/reset',{method:'POST'});lg();}"
     "setInterval(up,2000);setInterval(lg,3000);ld();lg();"
@@ -194,8 +194,8 @@ static esp_err_t api_log_handler(httpd_req_t *req)
                 if (e.ssid[k] == '"' || e.ssid[k] == '\\') ssid_esc[j++] = '\\';
                 ssid_esc[j++] = e.ssid[k];
             }
-            pos += sprintf(resp + pos, "{\"ssid\":\"%s\",\"locked\":%s,\"attempts\":%d,\"seconds_ago\":%lu}",
-                           ssid_esc, e.locked ? "true" : "false", e.attempts, (unsigned long)ago);
+            pos += sprintf(resp + pos, "{\"ssid\":\"%s\",\"locked\":%s,\"attempts\":%d,\"unique_devices\":%d,\"seconds_ago\":%lu}",
+                           ssid_esc, e.locked ? "true" : "false", e.attempts, e.unique_devices, (unsigned long)ago);
         }
     }
     pos += sprintf(resp + pos, "]}");
