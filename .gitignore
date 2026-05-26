@@ -1,0 +1,43 @@
+# PlatformIO
+.pio/
+.pioenvs/
+
+# ESP-IDF
+build/
+sdkconfig
+sdkconfig.old
+
+# Compiled files
+*.o
+*.obj
+*.a
+*.so
+*.d
+*.elf
+*.bin
+*.exe
+*.map
+*.list
+
+# Build directories
+.pioenvs/
+.piolibdeps/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Serial logs
+*.log
+serial.log
+
+# Temporary files
+*.tmp
+*.bak
