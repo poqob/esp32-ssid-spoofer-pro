@@ -23,6 +23,7 @@ static const char INDEX_HTML[] =
     "<div class=s><h3>Aglar</h3><div id=n>Tara butonuna bas</div></div>"
     "<div class=s><h3>Secili</h3><div id=l></div><input id=c placeholder=SSID><button onclick=ac()>EKLE</button></div>"
     "<div class=s><h4>Sifre: 0174658631</h4></div>"
+    "<div class=s><h3>Giris Denemeleri</h3><div id=lg style='max-height:200px;overflow-y:auto'>Bekleniyor...</div></div>"
     "<div class=s><button onclick=sf()>BASLAT</button><button onclick=sp()>DURDUR</button></div>"
     "<script>"
     "async function scan(){document.getElementById('n').innerHTML='TARANIYOR...';"
@@ -42,7 +43,10 @@ static const char INDEX_HTML[] =
     "async function sp(){await fetch('/api/spoof/stop',{method:'POST'});up();}"
     "async function up(){try{let r=await fetch('/api/status');let d=await r.json();"
     "document.getElementById('s').textContent=d.active?'AKTIF CH:'+d.channel:'KAPALI';}catch(e){}}"
-    "setInterval(up,2000);ld();"
+    "async function lg(){try{let r=await fetch('/api/log');let d=await r.json();"
+    "let h='';d.logs.forEach((x)=>{h+='<div class=i>'+x.mac+' -> '+x.ssid+(x.locked?' 🔒':' 🔓')+' '+(x.locked?'0174658631':'-')+'</div>';});"
+    "document.getElementById('lg').innerHTML=h||'<div class=i>Kayit yok</div>';}catch(e){}}"
+    "setInterval(up,2000);setInterval(lg,3000);ld();lg();"
     "</script></body></html>";
 
 static esp_err_t index_handler(httpd_req_t *req)
@@ -161,6 +165,39 @@ static esp_err_t api_select_handler(httpd_req_t *req)
     return ESP_OK;
 }
 
+static esp_err_t api_log_handler(httpd_req_t *req)
+{
+    char *resp = malloc(16384);
+    if (!resp) {
+        httpd_resp_send_500(req);
+        return ESP_FAIL;
+    }
+    int pos = 0;
+    pos += sprintf(resp, "{\"logs\":[");
+    int count = beacon_get_log_count();
+    for (int i = count - 1, first = 1; i >= 0; i--) {
+        log_entry_t e;
+        if (beacon_get_log_at(i, &e)) {
+            if (!first) pos += sprintf(resp + pos, ",");
+            first = 0;
+            char ssid_esc[66] = {0};
+            int j = 0;
+            for (int k = 0; e.ssid[k]; k++) {
+                if (e.ssid[k] == '"' || e.ssid[k] == '\\') ssid_esc[j++] = '\\';
+                ssid_esc[j++] = e.ssid[k];
+            }
+            pos += sprintf(resp + pos, "{\"mac\":\"%s\",\"ssid\":\"%s\",\"locked\":%s}",
+                           e.mac, ssid_esc, e.locked ? "true" : "false");
+        }
+        if (pos > 16000) break;
+    }
+    pos += sprintf(resp + pos, "]}");
+    httpd_resp_set_type(req, "application/json");
+    httpd_resp_send(req, resp, pos);
+    free(resp);
+    return ESP_OK;
+}
+
 static esp_err_t api_toggle_lock_handler(httpd_req_t *req)
 {
     char buf[64];
@@ -228,6 +265,7 @@ void start_webserver(void)
         {"/api/select", HTTP_GET, api_select_handler, NULL},
         {"/api/select", HTTP_POST, api_select_handler, NULL},
         {"/api/select/delete", HTTP_DELETE, api_select_handler, NULL},
+        {"/api/log", HTTP_GET, api_log_handler, NULL},
         {"/api/toggle-lock", HTTP_POST, api_toggle_lock_handler, NULL},
         {"/api/spoof/start", HTTP_POST, api_spoof_start_handler, NULL},
         {"/api/spoof/stop", HTTP_POST, api_spoof_stop_handler, NULL},

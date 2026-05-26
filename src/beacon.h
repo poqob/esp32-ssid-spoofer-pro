@@ -3,6 +3,13 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
+
+typedef struct {
+    char mac[18];
+    char ssid[33];
+    bool locked;
+} log_entry_t;
 
 void beacon_init(void);
 void beacon_set_channel(uint8_t channel);
@@ -16,5 +23,7 @@ int beacon_add_ssid(const char *ssid, uint8_t channel);
 bool beacon_remove_ssid(int index);
 uint8_t beacon_get_channel(void);
 bool beacon_toggle_lock(int index);
+int beacon_get_log_count(void);
+bool beacon_get_log_at(int index, log_entry_t *out);
 
 #endif
