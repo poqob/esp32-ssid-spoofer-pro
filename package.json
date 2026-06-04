@@ -1,0 +1,24 @@
+{
+  "name": "ssid-spoofing-pro",
+  "version": "1.0.0",
+  "description": "A web-controlled SSID beacon flooding tool for ESP32 with connection attempt logging and per-SSID lock toggling. Built with ESP-IDF framework.",
+  "main": "capture_screens.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poqob/esp32-ssid-spoofer-pro.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/poqob/esp32-ssid-spoofer-pro/issues"
+  },
+  "homepage": "https://github.com/poqob/esp32-ssid-spoofer-pro#readme",
+  "dependencies": {
+    "puppeteer": "^25.1.0"
+  }
+}

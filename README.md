@@ -45,6 +45,14 @@ pio run -t upload
 
 ## Web UI
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="screenshots/saturn_spoofer_dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="screenshots/saturn_spoofer_light.png">
+    <img src="screenshots/saturn_spoofer_dark.png" alt="Saturn Spoofer Web UI" width="360">
+  </picture>
+</p>
+
 - **Status bar**: Shows active/inactive state, channel, SSID count
 - **Scan**: Discover nearby APs and add them to your spoof list
 - **Selected SSIDs**: Toggle lock (🔒 WPA2 / 🔓 open), remove SSIDs

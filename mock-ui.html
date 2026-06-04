@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Saturn Spoofer — Screenshots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--text:#ddd;--card:#111;--border:#222;--muted:#666;--accent:#4fc3f7;--green:#66bb6a;--red:#ef5350;--orange:#ffa726;--blue:#42a5f5;--btn:#1a1a1a;--btn-hover:#2a2a2a;--input:#1a1a1a}
+[data-theme=light]{--bg:#fff;--text:#333;--card:#f5f5f5;--border:#e0e0e0;--muted:#999;--accent:#0288d1;--green:#43a047;--red:#e53935;--orange:#ef6c00;--blue:#1565c0;--btn:#eee;--btn-hover:#ddd;--input:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{margin:0;padding:0;background:#1a1f2a;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#fff}
+.wrap{display:flex;gap:24px;padding:32px;overflow-x:auto;align-items:flex-start;min-height:100vh}
+.label{color:#9aa6b8;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;font-weight:600}
+.frame{width:1080px;height:1920px;transform-origin:top left;transform:scale(.5);margin-right:-540px;margin-bottom:-960px;flex:0 0 auto}
+.col{flex:0 0 auto}
+
+/* ============ PHONE FRAME ============ */
+.phone{width:760px;height:1320px;border-radius:64px;background:#0A0812;padding:18px;box-shadow:0 60px 120px -30px rgba(0,0,0,.55),0 0 0 2px rgba(255,255,255,.04) inset;position:relative;margin:120px auto 0}
+.phone.light{background:#e8e8e8;box-shadow:0 60px 120px -30px rgba(0,0,0,.25),0 0 0 2px rgba(255,255,255,.6) inset}
+.phone-screen{width:100%;height:100%;border-radius:48px;overflow:hidden;position:relative;background:var(--bg)}
+.phone.light .phone-screen{background:var(--bg)}
+.notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:140px;height:28px;background:#000;border-radius:0 0 18px 18px;z-index:20}
+.light .notch{background:#c0c0c0}
+
+/* ============ PHONE STATUS BAR ============ */
+.phone-statusbar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-size:16px;font-weight:600;color:#fff;position:relative;z-index:15}
+.light .phone-statusbar{color:#222}
+.phone-statusbar .time{font-weight:700}
+.phone-statusbar .icons{display:flex;gap:6px;align-items:center;font-size:14px}
+.phone-statusbar .icons svg{width:18px;height:18px;fill:currentColor}
+
+/* ============ ORIGINAL UI ============ */
+.ui{font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;padding:6px 16px 16px;color:var(--text);background:var(--bg);height:100%;overflow-y:auto}
+.ui::-webkit-scrollbar{width:0}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:18px;font-weight:700;color:var(--text)}
+#tt{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:default;color:var(--text);font-size:16px;line-height:1}
+#tt:hover{border-color:var(--accent)}
+.card{border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px;background:var(--card)}
+.card h3{font-size:13px;font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+button{background:var(--btn);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 12px;cursor:default;font-size:13px;transition:.15s}
+button:hover{background:var(--btn-hover);border-color:var(--accent)}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.mt6{margin-top:6px}
+.mb6{margin-bottom:6px}
+.gap{gap:8px}
+input{background:var(--input);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;width:160px;outline:none}
+input:focus{border-color:var(--accent)}
+#s{font-size:13px;color:var(--muted)}
+#s.ok{color:var(--green)}
+#s.off{color:var(--muted)}
+.e{border-bottom:1px solid var(--border);padding:8px 0;font-size:13px}
+.e:last-child{border:0}
+.e .n{font-weight:600}
+.e .m{font-family:SFMono,monospace;font-size:12px;color:var(--accent)}
+.tag{color:var(--muted);font-size:11px;margin-left:4px}
+.tag-g{color:var(--green)}
+.tag-r{color:var(--red)}
+.tag-o{color:var(--orange)}
+.tag-b{color:var(--blue)}
+.sc,.sl{font-size:12px;color:var(--muted);padding:8px 0}
+#lg{max-height:280px;overflow-y:auto}
+.lh{font-size:11px;color:var(--muted);padding:4px 0;display:flex;gap:8px;border-bottom:1px solid var(--border)}
+.lh span{flex-shrink:0}
+.w{color:var(--muted);padding:8px 0;font-size:12px}
+
+/* ============ PRINT ============ */
+@page{size:1080px 1920px;margin:0}
+@media print{
+html,body{background:#1a1f2a!important}
+.wrap{display:block!important;padding:0!important;gap:0!important;overflow:visible!important}
+.col{display:block;width:1080px;height:1920px;page-break-after:always;break-after:page;page-break-inside:avoid;break-inside:avoid}
+.col:last-child{page-break-after:auto;break-after:auto}
+.label{display:none!important}
+.frame{width:1080px!important;height:1920px!important;transform:none!important;margin:0!important;page-break-inside:avoid;break-inside:avoid}
+*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<!-- ========= DARK THEME ========= -->
+<div class="col">
+<div class="label">Koyu Tema</div>
+<div class="frame">
+<div class="phone dark">
+<div class="notch"></div>
+<div class="phone-screen" data-theme="dark">
+<div class="phone-statusbar">
+<span class="time">14:32</span>
+<span class="icons">
+<svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+<svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+</span>
+</div>
+<div class="ui">
+<div class="top"><h1>Saturn Spoofer</h1><button id=tt>☁️</button></div>
+<div class=card><div id=s class=ok>● Active | CH 6 | 5 SSID</div></div>
+<div class='card row gap'>
+<button>Start</button><button>Stop</button>
+</div>
+<div class=card><h3>Scan</h3>
+<button>Scan</button>
+<div id=n><div class=e><div class=row><span class=n>Home WiFi</span><span class=tag>CH1</span><button style=padding:2px 8px;font-size:11px>+</button></div></div><div class=e><div class=row><span class=n>Starbucks</span><span class=tag>CH6</span><button style=padding:2px 8px;font-size:11px>+</button></div></div><div class=e><div class=row><span class=n>Kampüs</span><span class=tag>CH11</span><button style=padding:2px 8px;font-size:11px>+</button></div></div><div class=e><div class=row><span class=n>TP-Link_5G</span><span class=tag>CH3</span><button style=padding:2px 8px;font-size:11px>+</button></div></div><div class=e><div class=row><span class=n>Vodafone-4G</span><span class=tag>CH8</span><button style=padding:2px 8px;font-size:11px>+</button></div></div></div>
+</div>
+<div class=card><h3>Selected SSIDs</h3>
+<div class='row gap mb6'><input placeholder='New SSID' value='Guest-Network'><button>Add</button></div>
+<div id=l><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔒</button><span class=n>Home WiFi</span><span class='tag tag-r'>Locked</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔒</button><span class=n>Starbucks</span><span class='tag tag-r'>Locked</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔓</button><span class=n>Kampüs</span><span class='tag tag-g'>Open</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔒</button><span class=n>TP-Link_5G</span><span class='tag tag-r'>Locked</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔓</button><span class=n>Guest-Network</span><span class='tag tag-g'>Open</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div></div>
+<div class=w>Pass: 0174658631</div>
+</div>
+<div class=card><h3>Log</h3>
+<div id=lg><div class=lh><span style=width:130px>SSID</span><span style=width:44px>Try</span><span style=width:44px>Dev</span><span style=width:50px>RSSI</span><span style=width:150px>MAC</span><span style=width:60px>Vendor</span><span>Ago</span></div><div class=e><div class=row><span class=n>🔒 Home WiFi</span><span class=tag>12x</span><span class=tag>4d</span><span class='tag tag-g'>-52</span><span class=m>DE:AD:BE:EF:01:00</span><span class=tag>Apple</span><span style=color:var(--muted);font-size:11px>15s</span></div></div><div class=e><div class=row><span class=n>🔒 Starbucks</span><span class=tag>8x</span><span class=tag>3d</span><span class='tag tag-o'>-67</span><span class=m>DE:AD:BE:EF:02:00</span><span class=tag>Samsung</span><span style=color:var(--muted);font-size:11px>42s</span></div></div><div class=e><div class=row><span class=n>🔓 Kampüs</span><span class=tag>23x</span><span class=tag>7d</span><span class='tag tag-o'>-73</span><span class=m>DE:AD:BE:EF:03:00</span><span class=tag>Xiaomi</span><span style=color:var(--muted);font-size:11px>1m</span></div></div><div class=e><div class=row><span class=n>🔒 TP-Link_5G</span><span class=tag>5x</span><span class=tag>2d</span><span class='tag tag-r'>-81</span><span class=m>DE:AD:BE:EF:04:00</span><span class=tag>Huawei</span><span style=color:var(--muted);font-size:11px>2m</span></div></div><div class=e><div class=row><span class=n>🔓 Guest-Network</span><span class=tag>17x</span><span class=tag>5d</span><span class='tag tag-g'>-58</span><span class=m>DE:AD:BE:EF:05:00</span><span class=tag>Google</span><span style=color:var(--muted);font-size:11px>4m</span></div></div></div>
+<button style=margin-top:6px>Reset</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- ========= LIGHT THEME ========= -->
+<div class="col">
+<div class="label">Açık Tema</div>
+<div class="frame">
+<div class="phone light">
+<div class="notch"></div>
+<div class="phone-screen" data-theme="light">
+<div class="phone-statusbar">
+<span class="time">14:32</span>
+<span class="icons">
+<svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+<svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+</span>
+</div>
+<div class="ui">
+<div class="top"><h1>Saturn Spoofer</h1><button id=tt>☀️</button></div>
+<div class=card><div id=s class=ok>● Active | CH 6 | 5 SSID</div></div>
+<div class='card row gap'>
+<button>Start</button><button>Stop</button>
+</div>
+<div class=card><h3>Scan</h3>
+<button>Scan</button>
+<div id=n><div class=e><div class=row><span class=n>Home WiFi</span><span class=tag>CH1</span><button style=padding:2px 8px;font-size:11px>+</button></div></div><div class=e><div class=row><span class=n>Starbucks</span><span class=tag>CH6</span><button style=padding:2px 8px;font-size:11px>+</button></div></div><div class=e><div class=row><span class=n>Kampüs</span><span class=tag>CH11</span><button style=padding:2px 8px;font-size:11px>+</button></div></div><div class=e><div class=row><span class=n>TP-Link_5G</span><span class=tag>CH3</span><button style=padding:2px 8px;font-size:11px>+</button></div></div><div class=e><div class=row><span class=n>Vodafone-4G</span><span class=tag>CH8</span><button style=padding:2px 8px;font-size:11px>+</button></div></div></div>
+</div>
+<div class=card><h3>Selected SSIDs</h3>
+<div class='row gap mb6'><input placeholder='New SSID' value='Guest-Network'><button>Add</button></div>
+<div id=l><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔒</button><span class=n>Home WiFi</span><span class='tag tag-r'>Locked</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔒</button><span class=n>Starbucks</span><span class='tag tag-r'>Locked</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔓</button><span class=n>Kampüs</span><span class='tag tag-g'>Open</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔒</button><span class=n>TP-Link_5G</span><span class='tag tag-r'>Locked</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div><div class=e><div class=row><button style=padding:2px 6px;font-size:12px>🔓</button><span class=n>Guest-Network</span><span class='tag tag-g'>Open</span><button style=padding:2px 8px;font-size:11px>✖</button></div></div></div>
+<div class=w>Pass: 0174658631</div>
+</div>
+<div class=card><h3>Log</h3>
+<div id=lg><div class=lh><span style=width:130px>SSID</span><span style=width:44px>Try</span><span style=width:44px>Dev</span><span style=width:50px>RSSI</span><span style=width:150px>MAC</span><span style=width:60px>Vendor</span><span>Ago</span></div><div class=e><div class=row><span class=n>🔒 Home WiFi</span><span class=tag>12x</span><span class=tag>4d</span><span class='tag tag-g'>-52</span><span class=m>DE:AD:BE:EF:01:00</span><span class=tag>Apple</span><span style=color:var(--muted);font-size:11px>15s</span></div></div><div class=e><div class=row><span class=n>🔒 Starbucks</span><span class=tag>8x</span><span class=tag>3d</span><span class='tag tag-o'>-67</span><span class=m>DE:AD:BE:EF:02:00</span><span class=tag>Samsung</span><span style=color:var(--muted);font-size:11px>42s</span></div></div><div class=e><div class=row><span class=n>🔓 Kampüs</span><span class=tag>23x</span><span class=tag>7d</span><span class='tag tag-o'>-73</span><span class=m>DE:AD:BE:EF:03:00</span><span class=tag>Xiaomi</span><span style=color:var(--muted);font-size:11px>1m</span></div></div><div class=e><div class=row><span class=n>🔒 TP-Link_5G</span><span class=tag>5x</span><span class=tag>2d</span><span class='tag tag-r'>-81</span><span class=m>DE:AD:BE:EF:04:00</span><span class=tag>Huawei</span><span style=color:var(--muted);font-size:11px>2m</span></div></div><div class=e><div class=row><span class=n>🔓 Guest-Network</span><span class=tag>17x</span><span class=tag>5d</span><span class='tag tag-g'>-58</span><span class=m>DE:AD:BE:EF:05:00</span><span class=tag>Google</span><span style=color:var(--muted);font-size:11px>4m</span></div></div></div>
+<button style=margin-top:6px>Reset</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+</body>
+</html>
