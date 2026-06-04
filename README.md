@@ -46,11 +46,9 @@ pio run -t upload
 ## Web UI
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="screenshots/saturn_spoofer_dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="screenshots/saturn_spoofer_light.png">
-    <img src="screenshots/saturn_spoofer_dark.png" alt="Saturn Spoofer Web UI" width="360">
-  </picture>
+  <img src="screenshots/saturn_spoofer_dark.png" alt="Dark Theme" width="300">
+  &nbsp;&nbsp;&nbsp;
+  <img src="screenshots/saturn_spoofer_light.png" alt="Light Theme" width="300">
 </p>
 
 - **Status bar**: Shows active/inactive state, channel, SSID count
